@@ -10,7 +10,6 @@ const { toNumber } = require("ethers")
         let raffle, VRFCoordinatorV2Mock, raffleEntranceFee, deployer, interval
         const chainId = network.config.chainId
         beforeEach(async () => {
-
             deployer = (await getNamedAccounts()).deployer
             await deployments.fixture(["all"])
             raffle = await ethers.getContract("Raffle", deployer)

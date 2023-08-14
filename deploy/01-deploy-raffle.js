@@ -9,28 +9,23 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     const { deployer } = await getNamedAccounts()
     const { deploy, log } = deployments
     const chainId = network.config.chainId
-    let vrfCoordinatorV2Address, subscriptionId 
+    let vrfCoordinatorV2Address, subscriptionId , VRFCoordinatorV2Mock
 
     if (chainId == 31337) {
        // create VRFV2 Subscription
 
-        const VRFCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
-        // console.log(VRFCoordinatorV2Mock)
-        vrfCoordinatorV2Address = VRFCoordinatorV2Mock.runner.address
-    
-        // console.log(vrfCoordinatorV2Address)
-        // console.log(deployer)
-
-        // console.log(VRF2CordinatorV2Mock)
+         VRFCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
+        vrfCoordinatorV2Address = await VRFCoordinatorV2Mock.getAddress()
         const transactionResponse = await VRFCoordinatorV2Mock.createSubscription()
         const transactionReceipt = await transactionResponse.wait(1)
-
+        
         subscriptionId = transactionReceipt.logs[0].args.subId
-      
+        
 
         // Fund subscription    
         // Usually you had need the link token on a real network
         // on local network -> fund the subscrition without link token
+
         await VRFCoordinatorV2Mock.fundSubscription(subscriptionId, VRF_SUB_FUND_AMOUNT)
     } else {
         vrfCoordinatorV2Address = networkConfig[chainId]["vrfCoordinator"]
@@ -51,6 +46,11 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         log: true,
         waitConfirmations: network.config.blockConfirmations || 1,
     })
+
+    if(developmenChain.includes(network.name)) {
+        await VRFCoordinatorV2Mock.addConsumer(subscriptionId, raffle.address)
+        log('Consumer is added')
+    }
 
     if (!developmenChain.includes(network.name) && process.env.ETHERSCAN_API) {
         log("Verifying.....")
