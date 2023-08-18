@@ -21,7 +21,11 @@ error Raffle_upKeepNotNeeded(uint256, uint256, uint256, uint256, uint256, bool);
  * @dev This implements chianlink VRF2 and chainlink automation
  */
 
-contract Raffle is VRFConsumerBaseV2,ConfirmedOwner,AutomationCompatibleInterface {
+contract Raffle is
+    VRFConsumerBaseV2,
+    ConfirmedOwner,
+    AutomationCompatibleInterface
+{
     // type declaration
     enum RaffleState {
         OPEN,
@@ -56,7 +60,7 @@ contract Raffle is VRFConsumerBaseV2,ConfirmedOwner,AutomationCompatibleInterfac
         uint64 subscriptionId,
         uint32 callbackGasLimit,
         uint256 interval
-    ) VRFConsumerBaseV2(vrfCoordinatorV2) ConfirmedOwner(msg.sender){
+    ) VRFConsumerBaseV2(vrfCoordinatorV2) ConfirmedOwner(msg.sender) {
         s_enterenceFee = enterenceFee;
         i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinatorV2);
         i_gasLane = gasLane;
@@ -127,7 +131,7 @@ contract Raffle is VRFConsumerBaseV2,ConfirmedOwner,AutomationCompatibleInterfac
             );
         }
         s_raffleState = RaffleState.CALCULATING;
-        
+
         uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLane,
             i_subscriptionId,
@@ -137,6 +141,7 @@ contract Raffle is VRFConsumerBaseV2,ConfirmedOwner,AutomationCompatibleInterfac
         );
         emit RequestedRaffleWinner(requestId);
     }
+
     // internel functions
     function fulfillRandomWords(
         uint256,
@@ -145,10 +150,10 @@ contract Raffle is VRFConsumerBaseV2,ConfirmedOwner,AutomationCompatibleInterfac
         uint256 indexOfWinner = randomWords[0] % s_players.length; // ex -> anyMassiveNumber%sizeof_players = 0-sizeof_players -1
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
-        s_raffleState = RaffleState.OPEN;
-        s_players = new address payable[](0);
+        s_players = new address payable[]( 0);
+        s_raffleState = RaffleState.OPEN; 
         s_lastTimeStamp = block.timestamp;
-        (bool success, ) = s_recentWinner.call{value: address(this).balance}(
+        (bool success, ) = recentWinner.call{value: address(this).balance}(
             ""
         );
         if (!success) {
